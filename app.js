@@ -4,6 +4,7 @@ const express = require('express');
 const path = require('path');
 const morgan = require('morgan'); // Logging HTTP-Requests
 const winston = require('winston'); // Logging Prozess
+const {Pool} = require('pg'); // PostgreSQL
 
 // Einrichten der Logging-Funktionen
 const logger = winston.createLogger({
@@ -32,8 +33,7 @@ const config = JSON.parse(configFile);
 // Erstelle Webapp auf Port 8080 (wird über Docker umgeleitet) und gebe Ordner frei
 const app = express();
 const port = 8080;
-app.use(express.static(path.join(__dirname, config.maininfos.system.publicfolder)));
-app.use(express.static(path.join(__dirname, config.maininfos.system.profilesfolder)));
+app.use(express.static(path.join(__dirname, config.maininfos.system.publicfolder))); // Public-Ordner freigeben (für CSS, JS, etc.)
 app.use(morgan('combined', { // Alle HTTP-Requests werden geloggt
   stream: {
     write: (message) => logger.http(message.trim())
@@ -41,7 +41,7 @@ app.use(morgan('combined', { // Alle HTTP-Requests werden geloggt
 }));
 
 
-// Provisorisch hier das einzige Profil direkt eingebunden, das kann natürlich auch noch Geil gemacht werden
+// Request eines Profiles
 app.get('/', (req, res) => {
     Errors = [];
     profileconfig = {};
@@ -86,6 +86,7 @@ app.get('/', (req, res) => {
     } else {
         htmlFilePath = path.join(__dirname, config.maininfos.system.publicfolder, `error.html`);
     };
+    app.use(express.static(path.join(__dirname, config.maininfos.system.profilesfolder, requestedprofile))); // Profil-Ordner freigeben (für CSS, JS, etc.)
 
 
     // Lese die HTML-Datei und sende sie an Client
@@ -106,6 +107,95 @@ app.get('/', (req, res) => {
         res.writeHead(200, {'Content-Type': 'text/html'});
         res.end(data);
     });
+});
+
+
+// SQL-Datenabfrage
+// - profile (Profil, für DB-Connection)
+// - table (Selektierte Tabelle)
+// - attributes (Selektierte Attribute, Kommasepariert oder als Array (?attributes=col1,col2  ODER  ?attributes[]=col1&attributes[]=col2))
+// - filter (Optional, Filter-Statement ohne WHERE)
+// - orderattribute (Optional, nur ein Attribut als Text)
+const createPool = (dbConn) => new Pool({
+    host:     dbConn.host,
+    port:     dbConn.port,
+    database: dbConn.dbname,
+    user:     dbConn.user,
+    password: dbConn.password,
+    max: 1,                  // Nur 1 Verbindung, da Pool sofort wieder zerstört wird
+    idleTimeoutMillis: 1000, // Schnell aufräumen
+});
+
+app.get('/data', async (req, res) => {
+    Errors = [];
+    profileconfig = {};
+
+    const requestedprofile = req.query.profile
+    const table = req.query.table;
+    const attributes = req.query.attributes;
+    const filter = req.query.filter;
+    const orderby = req.query.orderattribute;
+    if (!table || !attributes) {
+        return res.status(400).json({error: 'table und attributes sind erforderlich.'});
+    }
+
+    // Profil auslesen
+    if (requestedprofile && config.profiles.hasOwnProperty(requestedprofile)) {
+        logger.info('Datenanfrage an Webapp auf gültiges Profil', {requestedProfile: requestedprofile, table, attributes});
+        profileconfig = config.profiles[requestedprofile];
+    } else {
+        return res.status(400).json({error: 'Der URL-Parameter PROFILE ist nicht oder falsch angegeben! Dieser Parameter ist ein Pflichtattribut...'});
+    };
+
+    // attributes kann als kommagetrennte Liste oder als Array ankommen
+    // ?attributes=col1,col2  ODER  ?attributes[]=col1&attributes[]=col2
+    const attrArray = Array.isArray(attributes)
+        ? attributes
+        : attributes.split(',').map(a => a.trim());
+
+    if (attrArray.length === 0) {
+        return res.status(400).json({error: 'Mindestens ein Attribut erforderlich.'});
+    };
+
+    // Schutz gegen SQL-Injection: nur alphanumerisch + Unterstrich erlaubt
+    const isValidIdentifier = (str) => /^[a-zA-Z_][a-zA-Z0-9_.]*$/.test(str);
+
+    if (!isValidIdentifier(table)) {
+        return res.status(400).json({error: 'Ungültige Table.'});
+    };
+    if (!attrArray.every(isValidIdentifier)) {
+        return res.status(400).json({error: 'Ungültige Attribute.'});
+    };
+
+    // Querry zusammenbauen
+    const cols = attrArray.map(a => `"${a}"`).join(', ');
+    var query = `SELECT ${cols} FROM "${table}"`;
+    if (filter) {
+        query = query+` WHERE ${filter}`;
+    };
+    if (orderby) {
+        query = query+` ORDER BY "${orderby}"`;
+    };
+    
+
+    // Connection Pool erstellen
+    const dbConn = profileconfig.db_conn;
+    const pool = createPool(dbConn);
+
+    try {
+        logger.info('DB-Abfrage', {requestedprofile, table, query});
+
+        const result = await pool.query(query);
+
+        logger.info('DB-Abfrage erfolgreich', {rows: result.rowCount});
+        return res.json({table: table, attributes: attrArray, count: result.rowCount, rows: result.rows});
+
+    } catch (err) {
+        logger.error('Datenbankfehler', {error: err.message, query});
+        return res.status(500).json({error: 'Datenbankfehler', detail: err.message});
+    } finally {
+        await pool.end(); // ← Verbindung immer schliessen, auch bei Fehler
+    };
 });
 
 
