@@ -1,0 +1,25 @@
+{
+    "maininfos": {
+        "siteauthor": "Jonathan Kaufmann",
+        "sitetitleprefix": "WebGIS - ",
+        "system": {
+            "publicfolder": "./public/",
+            "profilesfolder": "./profiles/"
+        }
+    },
+    "plugins": {},
+    "profiles": {
+        "coxboxdaten": {
+            "name": "Coxboxdaten",
+            "available": true,
+            "favicon": "./favicon_rcb.jpg",
+            "db_conn": {
+                "host": "host",
+                "port": 5432,
+                "dbname": "dbname",
+                "user": "user",
+                "password": "password"
+            }
+        }
+    }
+}

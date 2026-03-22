@@ -1,0 +1,33 @@
+
+## config files
+index.conf
+
+## logs
+*.log
+*.log*
+
+## test folders and files
+test.*
+test*.*
+test/
+test*/
+test/*
+test*/*
+
+## archives
+archiv/
+archiv/*
+*_old.*
+*_old*.*
+
+## images
+Thumbs.db
+# *.jpg
+# *.JPG
+# *.jpeg
+# *.JPEG
+# *.png
+# *.PNG
+
+## node files
+node_modules/

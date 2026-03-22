@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Coxboxdaten - Visualizer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/lucide-static@latest/font/lucide.css">
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            font-family: system-ui, sans-serif;
+            overflow: hidden;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 1;
+        }
+
+        .sidebar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 300px;
+            height: 100%;
+            background-color: #ffffffee;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            padding: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.closed {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1500;
+            background: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 10px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            font-size: 1.2em;
+            margin-top: 0;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 0.5rem;
+        }
+
+        .section {
+            margin-bottom: 1.5rem;
+        }
+
+        .legendsymbol {
+            height: 10px;
+            width: 10px;
+            border-radius: 20%;
+            display: inline-block;
+        }
+
+        .layer-toggle {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .layer-toggle input {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="sidebarToggle" class="sidebar-toggle">☰</button>
+    <div id="sidebar" class="sidebar">
+        <h2>WebGIS Menü</h2>
+
+        <div class="section" id="legend">
+            <h3>🗺️ Legende</h3>
+            <div>
+                <table>
+                    <tr id="value-0">
+                        <td id="symbol-0" class="legendsymbol" style="background-color: #0073e4;"></td>
+                        <td id="text-0" class="legendtext">unter SZ 20</td>
+                    </tr>
+                    <tr id="value-1">
+                        <td id="symbol-1" class="legendsymbol" style="background-color: #391dd4;"></td>
+                        <td id="text-1" class="legendtext">SZ 20 - 23</td>
+                    </tr>
+                    <tr id="value-2">
+                        <td id="symbol-2" class="legendsymbol" style="background-color: #971dd4;"></td>
+                        <td id="text-2" class="legendtext">SZ 23 - 26</td>
+                    </tr>
+                    <tr id="value-3">
+                        <td id="symbol-3" class="legendsymbol" style="background-color: #d41da9;"></td>
+                        <td id="text-3" class="legendtext">SZ 26 - 29</td>
+                    </tr>
+                    <tr id="value-4">
+                        <td id="symbol-4" class="legendsymbol" style="background-color: #d41d5d;"></td>
+                        <td id="text-4" class="legendtext">SZ 29 - 32</td>
+                    </tr>
+                    <tr id="value-5">
+                        <td id="symbol-5" class="legendsymbol" style="background-color: #d44a1d;"></td>
+                        <td id="text-5" class="legendtext">über SZ 32</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section" id="layers">
+            <h3>📂 Layer</h3>
+            <div class="layer-toggle">
+                <input type="checkbox" id="strokerate" checked>
+                <label for="strokerate">Schlagzahl</label>
+            </div>
+        </div>
+
+        <div class="section" id="info">
+            <h3>ℹ️ Info</h3>
+            <p>Klicke auf die Karte, um Informationen abzufragen (später erweiterbar).</p>
+        </div>
+    </div>
+
+    <div id="map"></div>
+    <script>
+        var map = L.map('map').setView([47.44, 8.36], 14);
+
+        //Hintergrundkarte (OpenStreetMap)
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // QGIS WMS Layer
+        var strokerate = L.tileLayer.wms('http://192.168.1.213:9880/qgis-server/?MAP=/wmsdata/coxboxdaten.qgs', {
+            layers: 'session_strokerate,stroke_strokerate',
+            format: 'image/png',
+            transparent: true
+        }).addTo(map);
+
+        // Layersteuerung per Checkbox
+        document.getElementById('strokerate').addEventListener('change', function (e) {
+            if (e.target.checked) {
+                map.addLayer(strokerate);
+            } else {
+                map.removeLayer(strokerate);
+            }
+        });
+
+        // Sidebar-Toggle
+        var sidebar = document.getElementById('sidebar');
+        document.getElementById('sidebarToggle').addEventListener('click', function () {
+            sidebar.classList.toggle('closed');
+        });
+
+        // Platzhalter: Klick-Info (später mit GetFeatureInfo)
+        map.on('click', function (e) {
+            console.log("Klick auf Karte bei:", e.latlng);
+            // später: WMS GetFeatureInfo hier einbauen
+        });
+    </script>
+</body>
+
+</html>

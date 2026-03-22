@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="de">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>Fehler WebGIS</title>
+        <meta name="description" id="description" content="Seite zum Anzeigen von Fehlern beim Laden der WebGIS-Profile">
+        <meta name="autor" id="autor" content="Jonathan Kaufmann">
+        <link rel="icon" type="image" id="favicon" href="">
+        <script src="index.js"></script>
+    </head>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Seitenmetadaten anpassen
+            document.title = sitetitle;
+            document.getElementById('autor').setAttribute('content', siteauthor);
+            document.getElementById('favicon').setAttribute('href', favicon);
+
+            document.getElementById('copyright').innerHTML = 'Copyright '+new Date().getFullYear()+' by '+siteauthor;
+            
+            // Funktion zum laden der Seite
+            initSite();
+            renderErrors(errors);
+        });
+    </script>
+    <body>
+        <header>
+            <h1 id="sitetitle">WebGIS - FEHLER</h1>
+        </header>
+        <main>
+            <ul id="error-list">
+            </ul>
+        </main>
+        <footer>
+            <p id="copyright">Copyright by Jonathan Kaufmann</p>
+        </footer>
+    </body>
+</html>
