@@ -1,0 +1,69 @@
+[
+    {
+        "field": "custom_name",
+        "label": "Sessionname",
+        "visible": true,
+        "editable": true,
+        "db": {
+            "table": "session",
+            "column": "custom_name",
+            "foreignKey": "fid",
+            "foreignKeySource": "fid_session"
+        }
+    },
+    {
+        "field": "narrative",
+        "label": "Beschreibung",
+        "visible": true,
+        "editable": true,
+        "db": {
+            "table": "session",
+            "column": "narrative",
+            "foreignKey": "fid",
+            "foreignKeySource": "fid_session"
+        }
+    },
+    {
+        "field": "start_time",
+        "label": "Startzeit",
+        "visible": true,
+        "editable": false,
+        "db": null,
+        "format": "datetime:DD.MM.YYYY HH:mm"
+    },
+    {
+        "field": "distance_gps",
+        "label": "Distanz",
+        "visible": true,
+        "editable": false,
+        "db": null
+    },
+    {
+        "field": "elapsed_time",
+        "label": "Dauer",
+        "visible": true,
+        "editable": false,
+        "db": null
+    },
+    {
+        "field": "speed_gps",
+        "label": "Ø Geschwindigkeit [km/h]",
+        "visible": true,
+        "editable": false,
+        "db": null
+    },
+    {
+        "field": "stroke_rate",
+        "label": "Ø Schlagzahl",
+        "visible": true,
+        "editable": false,
+        "db": null
+    },
+    {
+        "field": "fid_session",
+        "label": "Session-ID",
+        "visible": false,
+        "editable": false,
+        "db": null
+    }
+]

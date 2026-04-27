@@ -1,0 +1,44 @@
+[
+  {
+    "field": "custom_name",
+    "label": "Sessionname",
+    "type": "string",
+    "table": "v_session",
+    "enabled": true
+  },
+  {
+    "field": "narrative",
+    "label": "Beschreibung",
+    "type": "string",
+    "table": "v_session",
+    "enabled": true
+  },
+  {
+    "field": "distance_gps",
+    "label": "GPS-Distanz (m)",
+    "type": "number",
+    "table": "v_session",
+    "enabled": true
+  },
+  {
+    "field": "elapsed_time",
+    "label": "Dauer (s)",
+    "type": "number",
+    "table": "v_session",
+    "enabled": true
+  },
+  {
+    "field": "speed_gps",
+    "label": "Geschwindigkeit GPS",
+    "type": "number",
+    "table": "v_session",
+    "enabled": true
+  },
+  {
+    "field": "stroke_rate",
+    "label": "Schlagzahl",
+    "type": "number",
+    "table": "v_session",
+    "enabled": true
+  }
+]

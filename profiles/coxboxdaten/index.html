@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="utf-8" />
-    <title>Coxbox Visualizer</title>
+    <title>Coxbox Visualizer NEW</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -25,181 +24,43 @@
             --font-ui: 'Sora', sans-serif;
             --font-mono: 'DM Mono', monospace;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-ui); background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
+        #map { position: absolute; inset: 0; z-index: 1; }
 
-        body {
-            font-family: var(--font-ui);
-            background: var(--bg);
-            color: var(--text);
-            overflow: hidden;
-            height: 100vh;
-        }
-
-        #map {
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-        }
-
-        /* ── Sidebar ─────────────────────────────── */
-        .sidebar {
-            position: absolute;
-            top: 0; left: 0;
-            height: 100%;
-            width: 320px;
-            background: var(--sidebar-bg);
-            border-right: 1px solid var(--border);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.3s cubic-bezier(.4,0,.2,1);
-            overflow: hidden;
-        }
+        /* ── Sidebar ── */
+        .sidebar { position: absolute; top: 0; left: 0; height: 100%; width: 320px; background: var(--sidebar-bg); border-right: 1px solid var(--border); z-index: 100; display: flex; flex-direction: column; transition: transform 0.3s cubic-bezier(.4,0,.2,1); overflow: hidden; }
         .sidebar.closed { transform: translateX(-320px); }
-
-        .sidebar-header {
-            padding: 20px 20px 16px;
-            border-bottom: 1px solid var(--border);
-            background: linear-gradient(135deg, #1a2035 0%, #161a24 100%);
-        }
-        .sidebar-header h2 {
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--accent);
-        }
-        .sidebar-header p {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 3px;
-            font-family: var(--font-mono);
-        }
-
-        .sidebar-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        .sidebar-header { padding: 20px 20px 16px; border-bottom: 1px solid var(--border); background: linear-gradient(135deg, #1a2035 0%, #161a24 100%); }
+        .sidebar-header h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+        .sidebar-header p { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-family: var(--font-mono); }
+        .sidebar-body { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
         .sidebar-body::-webkit-scrollbar { width: 4px; }
         .sidebar-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-        /* ── Sections ────────────────────────────── */
-        .section {
-            background: var(--panel-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--section-radius);
-            overflow: hidden;
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 11px 14px;
-            cursor: pointer;
-            user-select: none;
-            border-bottom: 1px solid transparent;
-            transition: background 0.15s;
-        }
+        /* ── Sections ── */
+        .section { background: var(--panel-bg); border: 1px solid var(--border); border-radius: var(--section-radius); overflow: hidden; }
+        .section-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; cursor: pointer; user-select: none; border-bottom: 1px solid transparent; transition: background 0.15s; }
         .section-header:hover { background: rgba(61,127,255,0.06); }
         .section-header.open { border-bottom-color: var(--border); }
-
-        .section-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-        }
-        .section-title .icon { font-size: 14px; }
-
-        .section-chevron {
-            font-size: 10px;
-            color: var(--text-muted);
-            transition: transform 0.2s;
-        }
+        .section-title { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+        .section-chevron { font-size: 10px; color: var(--text-muted); transition: transform 0.2s; }
         .section-header.open .section-chevron { transform: rotate(180deg); }
-
-        .section-body {
-            padding: 14px;
-            display: none;
-        }
+        .section-body { padding: 14px; display: none; }
         .section-body.open { display: block; }
 
-        /* ── Form elements ───────────────────────── */
-        label {
-            display: block;
-            font-size: 11px;
-            font-weight: 500;
-            color: var(--text-muted);
-            margin-bottom: 5px;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-        }
-
-        select {
-            width: 100%;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text);
-            font-family: var(--font-mono);
-            font-size: 12px;
-            padding: 8px 10px;
-            outline: none;
-            transition: border-color 0.15s;
-            appearance: none;
-        }
+        /* ── Form ── */
+        label { display: block; font-size: 11px; font-weight: 500; color: var(--text-muted); margin-bottom: 5px; letter-spacing: 0.06em; text-transform: uppercase; }
+        select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--font-mono); font-size: 12px; padding: 8px 10px; outline: none; transition: border-color 0.15s; appearance: none; }
         select:focus { border-color: var(--accent); }
-
-        select[multiple] {
-            height: auto;
-            min-height: 90px;
-            padding: 4px;
-        }
-        select[multiple] option {
-            padding: 5px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-        select[multiple] option:checked {
-            background: var(--accent);
-            color: #fff;
-        }
-
+        select[multiple] { height: auto; min-height: 90px; padding: 4px; }
+        select[multiple] option { padding: 5px 8px; border-radius: 4px; font-size: 12px; }
+        select[multiple] option:checked { background: var(--accent); color: #fff; }
         .field { margin-bottom: 12px; }
         .field:last-child { margin-bottom: 0; }
 
-        .row-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
-        /* ── Buttons ─────────────────────────────── */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            border: none;
-            border-radius: 6px;
-            font-family: var(--font-ui);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            padding: 8px 14px;
-            transition: opacity 0.15s, transform 0.1s;
-            letter-spacing: 0.04em;
-        }
+        /* ── Buttons ── */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: none; border-radius: 6px; font-family: var(--font-ui); font-size: 12px; font-weight: 600; cursor: pointer; padding: 8px 14px; transition: opacity 0.15s, transform 0.1s; letter-spacing: 0.04em; }
         .btn:active { transform: scale(0.97); }
         .btn:disabled { opacity: 0.4; cursor: default; }
         .btn-primary { background: var(--accent); color: #fff; }
@@ -210,1297 +71,937 @@
         .btn-danger-ghost:hover { border-color: var(--danger); color: var(--danger); }
         .btn-warn { background: var(--warn); color: #000; }
         .btn-warn:hover { opacity: 0.88; }
-
-        .btn-row {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-        }
+        .btn-row { display: flex; gap: 8px; margin-top: 12px; }
         .btn-row .btn { flex: 1; }
 
-        /* ── Status tag ──────────────────────────── */
-        .status-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-family: var(--font-mono);
-            font-size: 10px;
-            padding: 3px 8px;
-            border-radius: 20px;
-            margin-top: 10px;
-        }
+        /* ── Status tag ── */
+        .status-tag { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 10px; padding: 3px 8px; border-radius: 20px; margin-top: 10px; }
         .status-tag.active { background: rgba(0,212,170,0.12); color: var(--accent2); border: 1px solid rgba(0,212,170,0.3); }
         .status-tag.inactive { background: rgba(100,116,139,0.12); color: var(--text-muted); border: 1px solid var(--border); }
         .status-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
 
-        /* ── Loading spinner ─────────────────────── */
-        .loading {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 8px;
-        }
+        /* ── Loading ── */
+        .loading { display: none; align-items: center; gap: 8px; font-size: 11px; color: var(--text-muted); margin-top: 8px; }
         .loading.visible { display: flex; }
-        .spinner {
-            width: 14px; height: 14px;
-            border: 2px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-        }
+        .spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ── Legend ──────────────────────────────── */
+        /* ── Legend ── */
         .legend-table { width: 100%; border-collapse: collapse; }
         .legend-table tr { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
         .legendsymbol { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
         .legendtext { font-size: 12px; color: var(--text-muted); }
 
-        /* ── Layer Switcher ──────────────────────── */
-        .layer-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .layer-radio {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 10px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            cursor: pointer;
-            transition: border-color 0.15s, background 0.15s;
-        }
+        /* ── Layer switcher ── */
+        .layer-group { display: flex; flex-direction: column; gap: 6px; }
+        .layer-radio { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
         .layer-radio:hover { border-color: var(--accent); background: rgba(61,127,255,0.05); }
         .layer-radio.selected { border-color: var(--accent); background: rgba(61,127,255,0.10); }
         .layer-radio input[type="radio"] { accent-color: var(--accent); }
         .layer-radio-label { font-size: 13px; font-weight: 500; }
         .layer-radio-sub { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
 
-        /* ── Date Range Picker ───────────────────── */
-        .date-range-picker {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 12px;
-            user-select: none;
-        }
-        .drp-nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        .drp-nav button {
-            background: none;
-            border: 1px solid var(--border);
-            color: var(--text);
-            border-radius: 5px;
-            width: 26px; height: 26px;
-            cursor: pointer;
-            font-size: 12px;
-            display: flex; align-items: center; justify-content: center;
-            transition: border-color 0.15s;
-        }
+        /* ── Date range picker ── */
+        .date-range-picker { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; user-select: none; }
+        .drp-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .drp-nav button { background: none; border: 1px solid var(--border); color: var(--text); border-radius: 5px; width: 26px; height: 26px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; transition: border-color 0.15s; }
         .drp-nav button:hover { border-color: var(--accent); color: var(--accent); }
-        .drp-month-label {
-            font-size: 12px;
-            font-weight: 600;
-            font-family: var(--font-mono);
-            color: var(--text);
-        }
-        .drp-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 2px;
-        }
-        .drp-day-header {
-            text-align: center;
-            font-size: 9px;
-            font-weight: 600;
-            color: var(--text-muted);
-            padding: 3px 0 6px;
-            letter-spacing: 0.05em;
-        }
-        .drp-day {
-            text-align: center;
-            font-size: 11px;
-            font-family: var(--font-mono);
-            padding: 5px 2px;
-            border-radius: 4px;
-            cursor: pointer;
-            color: var(--text-muted);
-            transition: background 0.1s, color 0.1s;
-            position: relative;
-        }
+        .drp-month-label { font-size: 12px; font-weight: 600; font-family: var(--font-mono); color: var(--text); }
+        .drp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .drp-day-header { text-align: center; font-size: 9px; font-weight: 600; color: var(--text-muted); padding: 3px 0 6px; letter-spacing: 0.05em; }
+        .drp-day { text-align: center; font-size: 11px; font-family: var(--font-mono); padding: 5px 2px; border-radius: 4px; cursor: pointer; color: var(--text-muted); transition: background 0.1s, color 0.1s; }
         .drp-day:hover:not(.drp-day-empty):not(.drp-day-disabled) { background: rgba(61,127,255,0.2); color: var(--text); }
         .drp-day.drp-day-empty, .drp-day.drp-day-disabled { cursor: default; opacity: 0.3; }
-        .drp-day.drp-start, .drp-day.drp-end { background: var(--accent); color: #fff; border-radius: 4px; }
+        .drp-day.drp-start, .drp-day.drp-end { background: var(--accent); color: #fff; }
         .drp-day.drp-in-range { background: rgba(61,127,255,0.15); color: var(--text); border-radius: 0; }
         .drp-day.drp-start { border-radius: 4px 0 0 4px; }
         .drp-day.drp-end { border-radius: 0 4px 4px 0; }
         .drp-day.drp-start.drp-end { border-radius: 4px; }
-        .drp-selection-hint {
-            font-size: 10px;
-            color: var(--text-muted);
-            font-family: var(--font-mono);
-            margin-top: 8px;
-            min-height: 16px;
-        }
+        .drp-selection-hint { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 8px; min-height: 16px; }
 
-        /* ── Sidebar toggle button ───────────────── */
-        .sidebar-toggle {
-            position: absolute;
-            top: 14px;
-            left: 330px;
-            z-index: 200;
-            background: var(--sidebar-bg);
-            border: 1px solid var(--border);
-            color: var(--text);
-            width: 36px; height: 36px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: left 0.3s cubic-bezier(.4,0,.2,1), background 0.15s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-        }
+        /* ── Top-right buttons ── */
+        .sidebar-toggle { position: absolute; top: 14px; left: 330px; z-index: 200; background: var(--sidebar-bg); border: 1px solid var(--border); color: var(--text); width: 36px; height: 36px; border-radius: 8px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: left 0.3s cubic-bezier(.4,0,.2,1), background 0.15s; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
         .sidebar-toggle:hover { background: var(--panel-bg); }
         .sidebar.closed ~ .sidebar-toggle { left: 14px; }
-
-        /* ── Top-right buttons ───────────────────── */
-        .topright-btns {
-            position: absolute;
-            top: 14px;
-            right: 14px;
-            z-index: 200;
-            display: flex;
-            gap: 8px;
-        }
-        .icon-btn {
-            background: var(--sidebar-bg);
-            border: 1px solid var(--border);
-            color: var(--text);
-            width: 36px; height: 36px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.15s, border-color 0.15s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-            position: relative;
-        }
+        .topright-btns { position: absolute; top: 14px; right: 14px; z-index: 200; display: flex; gap: 8px; }
+        .icon-btn { background: var(--sidebar-bg); border: 1px solid var(--border); color: var(--text); width: 36px; height: 36px; border-radius: 8px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s, border-color 0.15s; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
         .icon-btn:hover { background: var(--panel-bg); border-color: var(--accent); }
-        .icon-btn-label {
-            font-size: 10px;
-            font-family: var(--font-mono);
-            position: absolute;
-            bottom: -18px;
-            left: 50%;
-            transform: translateX(-50%);
-            white-space: nowrap;
-            color: var(--text-muted);
-        }
 
-        /* ── Basemap picker dropdown ─────────────── */
-        .basemap-dropdown {
-            position: absolute;
-            top: 58px;
-            right: 14px;
-            z-index: 300;
-            background: var(--sidebar-bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            display: none;
-            min-width: 200px;
-        }
+        /* ── Basemap dropdown ── */
+        .basemap-dropdown { position: absolute; top: 58px; right: 14px; z-index: 300; background: var(--sidebar-bg); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: none; min-width: 200px; }
         .basemap-dropdown.open { display: block; }
-        .basemap-option {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background 0.12s;
-            border-bottom: 1px solid var(--border);
-        }
+        .basemap-option { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; font-size: 12px; transition: background 0.12s; border-bottom: 1px solid var(--border); }
         .basemap-option:last-child { border-bottom: none; }
         .basemap-option:hover { background: rgba(61,127,255,0.08); }
         .basemap-option.active { color: var(--accent); }
-        .basemap-thumb {
-            width: 32px; height: 22px;
-            border-radius: 4px;
-            border: 1px solid var(--border);
-            object-fit: cover;
-            background: var(--bg);
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-        }
+        .basemap-thumb { width: 32px; height: 22px; border-radius: 4px; border: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; }
 
-        /* ── Modal overlay ───────────────────────── */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.65);
-            z-index: 500;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(4px);
-        }
+        /* ── Share toast ── */
+        .share-toast { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); z-index: 400; background: var(--panel-bg); border: 1px solid var(--accent2); border-radius: 8px; padding: 10px 18px; font-size: 12px; color: var(--accent2); font-family: var(--font-mono); opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; white-space: nowrap; }
+        .share-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* ── Modal ── */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 500; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-overlay.open { display: flex; }
-
-        .modal {
-            background: var(--sidebar-bg);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            width: 480px;
-            max-width: 95vw;
-            max-height: 85vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-            animation: modalIn 0.2s cubic-bezier(.4,0,.2,1);
-        }
-        @keyframes modalIn {
-            from { opacity: 0; transform: scale(0.95) translateY(10px); }
-            to   { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        .modal-header {
-            padding: 18px 20px 14px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .modal-header h3 {
-            font-size: 14px;
-            font-weight: 600;
-        }
-        .modal-close {
-            background: none;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            border-radius: 6px;
-            width: 28px; height: 28px;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex; align-items: center; justify-content: center;
-            transition: border-color 0.15s, color 0.15s;
-        }
+        .modal { background: var(--sidebar-bg); border: 1px solid var(--border); border-radius: 14px; width: 480px; max-width: 95vw; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.6); animation: modalIn 0.2s cubic-bezier(.4,0,.2,1); }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .modal-header { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .modal-header h3 { font-size: 14px; font-weight: 600; }
+        .modal-close { background: none; border: 1px solid var(--border); color: var(--text-muted); border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: border-color 0.15s, color 0.15s; }
         .modal-close:hover { border-color: var(--danger); color: var(--danger); }
+        .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+        .modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
 
-        .modal-body {
-            padding: 20px;
-            overflow-y: auto;
-            flex: 1;
-        }
-
-        .modal-footer {
-            padding: 14px 20px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 8px;
-            justify-content: flex-end;
-        }
-
-        /* ── Feature Info popup ──────────────────── */
-        .feature-info-popup {
-            font-family: var(--font-ui);
-        }
-        .feature-info-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-        }
-        .feature-info-table tr:nth-child(even) { background: rgba(255,255,255,0.03); }
-        .feature-info-table td {
-            padding: 4px 8px;
-            border-bottom: 1px solid var(--border);
-        }
-        .feature-info-table td:first-child {
-            color: var(--text-muted);
-            font-family: var(--font-mono);
-            font-size: 11px;
-            width: 45%;
-        }
-
-        /* ── Upload area ─────────────────────────── */
-        .upload-area {
-            border: 2px dashed var(--border);
-            border-radius: 10px;
-            padding: 30px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: border-color 0.15s, background 0.15s;
-            margin-bottom: 16px;
-        }
-        .upload-area:hover, .upload-area.drag-over {
-            border-color: var(--accent);
-            background: rgba(61,127,255,0.05);
-        }
+        /* ── Upload ── */
+        .upload-area { border: 2px dashed var(--border); border-radius: 10px; padding: 30px 20px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; margin-bottom: 16px; }
+        .upload-area:hover, .upload-area.drag-over { border-color: var(--accent); background: rgba(61,127,255,0.05); }
         .upload-area .upload-icon { font-size: 32px; margin-bottom: 8px; }
         .upload-area p { font-size: 13px; color: var(--text-muted); }
         .upload-area strong { color: var(--accent); }
-        .upload-file-info {
-            background: var(--panel-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 12px;
-            font-family: var(--font-mono);
-            display: none;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
+        .upload-file-info { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 12px; font-family: var(--font-mono); display: none; align-items: center; gap: 10px; margin-bottom: 12px; }
         .upload-file-info.visible { display: flex; }
-        .upload-log {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px;
-            font-size: 11px;
-            font-family: var(--font-mono);
-            color: var(--accent2);
-            max-height: 150px;
-            overflow-y: auto;
-            display: none;
-        }
+        .upload-log { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-size: 11px; font-family: var(--font-mono); color: var(--accent2); max-height: 150px; overflow-y: auto; display: none; }
         .upload-log.visible { display: block; }
         .log-line { margin-bottom: 2px; }
         .log-line.error { color: var(--danger); }
         .log-line.warn { color: var(--warn); }
 
-        /* ── Edit Attributes form ────────────────── */
-        .attr-edit-field {
-            margin-bottom: 12px;
-        }
-        .attr-edit-input {
-            width: 100%;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text);
-            font-family: var(--font-mono);
-            font-size: 12px;
-            padding: 8px 10px;
-            outline: none;
-            transition: border-color 0.15s;
-        }
+        /* ── Edit modal ── */
+        .attr-edit-input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--font-mono); font-size: 12px; padding: 8px 10px; outline: none; transition: border-color 0.15s; }
         .attr-edit-input:focus { border-color: var(--accent); }
 
-        /* ── Hint text ───────────────────────────── */
+        /* ── Misc ── */
         .hint { font-size: 11px; color: var(--text-muted); line-height: 1.5; margin-top: 6px; }
-        .divider { height: 1px; background: var(--border); margin: 10px 0; }
+        .feature-info-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .feature-info-table tr:nth-child(even) { background: rgba(255,255,255,0.03); }
+        .feature-info-table td { padding: 4px 8px; border-bottom: 1px solid var(--border); }
+        .feature-info-table td:first-child { color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; width: 45%; }
+        .dark-popup .leaflet-popup-content-wrapper { background: #1c2130; color: #e2e8f0; border: 1px solid #2a3044; border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+        .dark-popup .leaflet-popup-tip { background: #1c2130; }
+        .dark-popup .leaflet-popup-close-button { color: #64748b; }
+
+        /* ── App loading ── */
+        #appLoading { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; transition: opacity 0.4s; }
+        #appLoading .spinner { width: 28px; height: 28px; border-width: 3px; }
+        #appLoading p { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
     </style>
 </head>
-
 <body>
-    <!-- ══════════════════════════ SIDEBAR ══════════════════════════ -->
-    <div id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <h2>Coxbox Visualizer</h2>
-            <p>WebGIS · Datenfilterung</p>
-        </div>
 
-        <div class="sidebar-body">
+<!-- ── App loading screen ── -->
+<div id="appLoading">
+    <div class="spinner"></div>
+    <p>Konfiguration wird geladen…</p>
+</div>
 
-            <!-- LEGENDE -->
-            <div class="section">
-                <div class="section-header open" onclick="toggleSection(this)">
-                    <span class="section-title"><span class="icon">🗺️</span> Legende</span>
-                    <span class="section-chevron">▼</span>
-                </div>
-                <div class="section-body open" id="legendBody">
-                    <!-- Wird dynamisch befüllt -->
-                </div>
-            </div>
-
-            <!-- LAYER SWITCHER -->
-            <div class="section">
-                <div class="section-header open" onclick="toggleSection(this)">
-                    <span class="section-title"><span class="icon">📂</span> Layer</span>
-                    <span class="section-chevron">▼</span>
-                </div>
-                <div class="section-body open">
-                    <div class="layer-group" id="layerGroup"></div>
-                </div>
-            </div>
-
-            <!-- DATUMSFILTER -->
-            <div class="section">
-                <div class="section-header open" onclick="toggleSection(this)">
-                    <span class="section-title"><span class="icon">📅</span> Datumsfilter</span>
-                    <span class="section-chevron">▼</span>
-                </div>
-                <div class="section-body open">
-                    <div class="date-range-picker" id="drp">
-                        <div class="drp-nav">
-                            <button onclick="drpPrevMonth()">‹</button>
-                            <span class="drp-month-label" id="drpMonthLabel"></span>
-                            <button onclick="drpNextMonth()">›</button>
-                        </div>
-                        <div class="drp-grid" id="drpGrid"></div>
-                        <div class="drp-selection-hint" id="drpHint">Startdatum anklicken</div>
-                    </div>
-                    <div id="dateStatus" class="status-tag inactive">
-                        <span class="status-dot"></span>
-                        kein Filter aktiv
-                    </div>
-                    <div class="btn-row">
-                        <button class="btn btn-primary" id="applyDateBtn" onclick="applyDateFilter()" disabled>Anwenden</button>
-                        <button class="btn btn-danger-ghost" onclick="clearDateFilter()">Zurücksetzen</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ATTRIBUTFILTER -->
-            <div class="section">
-                <div class="section-header open" onclick="toggleSection(this)">
-                    <span class="section-title"><span class="icon">🔍</span> Attributfilter</span>
-                    <span class="section-chevron">▼</span>
-                </div>
-                <div class="section-body open">
-                    <div class="field">
-                        <label>Filterfeld</label>
-                        <select id="attrColumn" onchange="loadAttributeValues()">
-                            <option value="">— Attribut wählen —</option>
-                            <option value="custom_name">custom_name</option>
-                            <option value="narrative">narrative</option>
-                            <option value="distance_gps">distance_gps</option>
-                            <option value="elapsed_time">elapsed_time</option>
-                            <option value="speed_gps">speed_gps</option>
-                            <option value="stroke_rate">stroke_rate</option>
-                        </select>
-                    </div>
-
-                    <div class="loading" id="valuesLoading">
-                        <div class="spinner"></div>
-                        Lade Werte…
-                    </div>
-
-                    <div class="field" id="attrValuesField" style="display:none">
-                        <label>Werte <span style="color:var(--accent);font-size:10px;">(Mehrfachauswahl möglich)</span></label>
-                        <select id="attrValues" multiple size="6"></select>
-                    </div>
-
-                    <div id="attrStatus" class="status-tag inactive">
-                        <span class="status-dot"></span>
-                        kein Filter aktiv
-                    </div>
-                    <div class="btn-row">
-                        <button class="btn btn-primary" id="applyAttrBtn" onclick="applyAttrFilter()" disabled>Anwenden</button>
-                        <button class="btn btn-danger-ghost" onclick="clearAttrFilter()">Zurücksetzen</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- INFO -->
-            <div class="section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <span class="section-title"><span class="icon">ℹ️</span> Info</span>
-                    <span class="section-chevron">▼</span>
-                </div>
-                <div class="section-body">
-                    <p class="hint">Klicke auf einen Feature auf der Karte, um Attributinfos abzurufen. Editierbare Felder werden direkt im Popup angezeigt.</p>
-                </div>
-            </div>
-
-        </div>
+<!-- ── Sidebar ── -->
+<div id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+        <h2>Coxbox Visualizer</h2>
+        <p>WebGIS · Datenfilterung</p>
     </div>
+    <div class="sidebar-body">
 
-    <button id="sidebarToggleBtn" class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
-
-    <!-- Top-Right Buttons -->
-    <div class="topright-btns">
-        <button class="icon-btn" title="Hintergrundkarte wechseln" onclick="toggleBasemapPicker()">🗾</button>
-        <button class="icon-btn" title="Daten hochladen" onclick="openUploadModal()" style="color:var(--warn);">⬆</button>
-    </div>
-
-    <!-- Basemap Dropdown -->
-    <div class="basemap-dropdown" id="basemapDropdown">
-        <div class="basemap-option active" onclick="setBasemap('dark')" data-bm="dark">
-            <div class="basemap-thumb">🌑</div>
-            <span>Dark (CartoDB)</span>
-        </div>
-        <div class="basemap-option" onclick="setBasemap('osm')" data-bm="osm">
-            <div class="basemap-thumb">🗺️</div>
-            <span>OpenStreetMap</span>
-        </div>
-        <div class="basemap-option" onclick="setBasemap('satellite')" data-bm="satellite">
-            <div class="basemap-thumb">🛰️</div>
-            <span>Satellite (Esri)</span>
-        </div>
-        <div class="basemap-option" onclick="setBasemap('topo')" data-bm="topo">
-            <div class="basemap-thumb">🏔️</div>
-            <span>Topo (OpenTopo)</span>
-        </div>
-    </div>
-
-    <div id="map"></div>
-
-    <!-- ══════════════════════════ UPLOAD MODAL ══════════════════════════ -->
-    <div class="modal-overlay" id="uploadModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3>📥 Daten importieren</h3>
-                <button class="modal-close" onclick="closeModal('uploadModal')">✕</button>
+        <div class="section">
+            <div class="section-header open" onclick="toggleSection(this)">
+                <span class="section-title"><span class="icon">🗺️</span> Legende</span>
+                <span class="section-chevron">▼</span>
             </div>
-            <div class="modal-body">
-                <p class="hint" style="margin-bottom:16px;">Wähle eine Datei aus (z.B. .fit, .gpx, .csv). Der Import wird durch das Python-Importscript verarbeitet.</p>
+            <div class="section-body open" id="legendBody"></div>
+        </div>
 
-                <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()"
-                     ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
-                    <div class="upload-icon">📁</div>
-                    <p><strong>Klicken</strong> oder Datei hierher ziehen</p>
-                    <p style="font-size:11px;margin-top:4px;">.fit · .gpx · .csv · .json</p>
+        <div class="section">
+            <div class="section-header open" onclick="toggleSection(this)">
+                <span class="section-title"><span class="icon">📂</span> Layer</span>
+                <span class="section-chevron">▼</span>
+            </div>
+            <div class="section-body open">
+                <div class="layer-group" id="layerGroup"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header open" onclick="toggleSection(this)">
+                <span class="section-title"><span class="icon">📅</span> Datumsfilter</span>
+                <span class="section-chevron">▼</span>
+            </div>
+            <div class="section-body open">
+                <div class="date-range-picker" id="drp">
+                    <div class="drp-nav">
+                        <button onclick="drpPrevMonth()">‹</button>
+                        <span class="drp-month-label" id="drpMonthLabel"></span>
+                        <button onclick="drpNextMonth()">›</button>
+                    </div>
+                    <div class="drp-grid" id="drpGrid"></div>
+                    <div class="drp-selection-hint" id="drpHint">Startdatum anklicken</div>
                 </div>
-                <input type="file" id="fileInput" accept=".fit,.gpx,.csv,.json" style="display:none" onchange="handleFileSelect(event)">
-
-                <div class="upload-file-info" id="uploadFileInfo">
-                    <span>📄</span>
-                    <span id="uploadFileName">–</span>
-                    <span id="uploadFileSize" style="color:var(--text-muted);font-size:10px;"></span>
-                    <button class="btn btn-danger-ghost" style="margin-left:auto;padding:4px 8px;" onclick="clearFileSelection()">✕</button>
+                <div id="dateStatus" class="status-tag inactive">
+                    <span class="status-dot"></span>kein Filter aktiv
                 </div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" id="applyDateBtn" onclick="applyDateFilter()" disabled>Anwenden</button>
+                    <button class="btn btn-danger-ghost" onclick="clearDateFilter()">Zurücksetzen</button>
+                </div>
+            </div>
+        </div>
 
+        <div class="section">
+            <div class="section-header open" onclick="toggleSection(this)">
+                <span class="section-title"><span class="icon">🔍</span> Attributfilter</span>
+                <span class="section-chevron">▼</span>
+            </div>
+            <div class="section-body open">
                 <div class="field">
-                    <label>Script-Pfad</label>
-                    <input class="attr-edit-input" type="text" id="importScript" value="/scripts/import_coxbox.py" placeholder="/pfad/zum/script.py">
+                    <label>Filterfeld</label>
+                    <select id="attrColumn" onchange="loadAttributeValues()">
+                        <option value="">— Attribut wählen —</option>
+                    </select>
                 </div>
-
-                <div class="field">
-                    <label>Zusätzliche Parameter (optional)</label>
-                    <input class="attr-edit-input" type="text" id="importParams" placeholder="--verbose --dry-run">
+                <div class="loading" id="valuesLoading">
+                    <div class="spinner"></div>Lade Werte…
                 </div>
-
-                <div class="upload-log" id="uploadLog"></div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-ghost" onclick="closeModal('uploadModal')">Abbrechen</button>
-                <button class="btn btn-warn" id="importBtn" onclick="runImport()" disabled>▶ Import starten</button>
+                <div class="field" id="attrValuesField" style="display:none">
+                    <label>Werte <span style="color:var(--accent);font-size:10px;">(Mehrfachauswahl möglich)</span></label>
+                    <select id="attrValues" multiple size="6"></select>
+                </div>
+                <div id="attrStatus" class="status-tag inactive">
+                    <span class="status-dot"></span>kein Filter aktiv
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-primary" id="applyAttrBtn" onclick="applyAttrFilter()" disabled>Anwenden</button>
+                    <button class="btn btn-danger-ghost" onclick="clearAttrFilter()">Zurücksetzen</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- ══════════════════════════ EDIT MODAL ══════════════════════════ -->
-    <div class="modal-overlay" id="editModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3>✏️ Attribut bearbeiten</h3>
-                <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span class="section-title"><span class="icon">ℹ️</span> Info</span>
+                <span class="section-chevron">▼</span>
             </div>
-            <div class="modal-body" id="editModalBody">
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-ghost" onclick="closeModal('editModal')">Abbrechen</button>
-                <button class="btn btn-primary" onclick="saveAttrEdit()">💾 Speichern</button>
+            <div class="section-body">
+                <p class="hint">Klicke auf ein Feature auf der Karte, um Attributinfos abzurufen. Editierbare Felder werden direkt im Popup angezeigt.</p>
             </div>
         </div>
+
     </div>
+</div>
 
-    <script>
-    // ════════════════════════════════════════════════════════════════
-    //  LAYER KONFIGURATION
-    // ════════════════════════════════════════════════════════════════
-    const LAYER_CONFIG = {
-        standard: {
-            label: 'Standard',
-            layers: 'session_distance,stroke_distance',
-            legend: [
-                { color: '#c1b26b', label: 'Strecke' },
-                { color: '#fa1028', label: 'Start' },
-                { color: '#059009', label: 'Ende' },
-            ]
-        },
-        strokerate: {
-            label: 'Schlagzahl',
-            layers: 'session_strokerate,stroke_strokerate',
-            legend: [
-                {color: '#0073e4', label: 'unter SZ 20'},
-                {color: '#391dd4', label: 'SZ 20 - 23'},
-                {color: '#971dd4', label: 'SZ 23 - 26'},
-                {color: '#d41da9', label: 'SZ 26 - 29'},
-                {color: '#d41d5d', label: 'SZ 29 - 32'},
-                {color: '#d44a1d', label: 'über SZ 32'},
-            ]
-        },
-        speed: {
-            label: 'Geschwindigkeit',
-            layers: 'session_speed,stroke_speed',
-            legend: [
-                {color: '#0073e4', label: 'weniger als 9 km/h'},
-                {color: '#391dd4', label: '9 - 11 km/h'},
-                {color: '#971dd4', label: '11 - 13 km/h'},
-                {color: '#d41da9', label: '13 - 15 km/h'},
-                {color: '#d41d5d', label: '15 - 17 km/h'},
-                {color: '#d44a1d', label: 'schneller als 17 km/h'},
-            ]
-        }
-    };
+<button id="sidebarToggleBtn" class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
 
-    let activeLayerKey = 'standard';
+<!-- Top-right buttons -->
+<div class="topright-btns">
+    <button class="icon-btn" title="Ansicht teilen" onclick="shareView()">🔗</button>
+    <button class="icon-btn" title="Hintergrundkarte" onclick="toggleBasemapPicker()">🗾</button>
+    <button class="icon-btn" title="Daten importieren" onclick="openUploadModal()" style="color:var(--warn);">⬆</button>
+</div>
 
-    // ════════════════════════════════════════════════════════════════
-    //  KARTE
-    // ════════════════════════════════════════════════════════════════
-    const map = L.map('map', { zoomControl: true }).setView([47.44, 8.36], 14);
+<!-- Basemap dropdown -->
+<div class="basemap-dropdown" id="basemapDropdown"></div>
 
-    const BASEMAPS = {
-        dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap © CARTO',
-            subdomains: 'abcd', maxZoom: 20
-        }),
-        osm: L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        }),
-        satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: '© Esri'
-        }),
-        topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenTopoMap'
-        })
-    };
+<div id="map"></div>
 
-    let activeBasemap = 'dark';
-    BASEMAPS.dark.addTo(map);
+<!-- Share toast -->
+<div class="share-toast" id="shareToast">🔗 Link in Zwischenablage kopiert!</div>
 
-    function setBasemap(key) {
-        if (key === activeBasemap) { toggleBasemapPicker(); return; }
-        map.removeLayer(BASEMAPS[activeBasemap]);
-        activeBasemap = key;
-        BASEMAPS[key].addTo(map);
-        BASEMAPS[key].bringToBack();
-        document.querySelectorAll('.basemap-option').forEach(el => {
-            el.classList.toggle('active', el.dataset.bm === key);
-        });
-        toggleBasemapPicker();
+<!-- Upload Modal -->
+<div class="modal-overlay" id="uploadModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>📥 Daten importieren</h3>
+            <button class="modal-close" onclick="closeModal('uploadModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <p class="hint" style="margin-bottom:16px;">Wähle eine Datei aus (.fit, .gpx, .csv). Der Import wird durch das Python-Script verarbeitet.</p>
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()"
+                 ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+                <div class="upload-icon">📁</div>
+                <p><strong>Klicken</strong> oder Datei hierher ziehen</p>
+                <p style="font-size:11px;margin-top:4px;">.fit · .gpx · .csv · .json</p>
+            </div>
+            <input type="file" id="fileInput" accept=".fit,.gpx,.csv,.json" style="display:none" onchange="handleFileSelect(event)">
+            <div class="upload-file-info" id="uploadFileInfo">
+                <span>📄</span>
+                <span id="uploadFileName">–</span>
+                <span id="uploadFileSize" style="color:var(--text-muted);font-size:10px;"></span>
+                <button class="btn btn-danger-ghost" style="margin-left:auto;padding:4px 8px;" onclick="clearFileSelection()">✕</button>
+            </div>
+            <div class="field">
+                <label>Script-Pfad</label>
+                <input class="attr-edit-input" type="text" id="importScript" value="/scripts/import_coxbox.py">
+            </div>
+            <div class="field">
+                <label>Zusätzliche Parameter</label>
+                <input class="attr-edit-input" type="text" id="importParams" placeholder="--verbose --dry-run">
+            </div>
+            <div class="upload-log" id="uploadLog"></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeModal('uploadModal')">Abbrechen</button>
+            <button class="btn btn-warn" id="importBtn" onclick="runImport()" disabled>▶ Import starten</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>✏️ Attribut bearbeiten</h3>
+            <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+        </div>
+        <div class="modal-body" id="editModalBody"></div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeModal('editModal')">Abbrechen</button>
+            <button class="btn btn-primary" onclick="saveAttrEdit()">💾 Speichern</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════════════
+let config = {}; // komplettes Config vom Backend, wird mit init() angefragt
+let activeLayerKey = null;
+let activeBasemapKey = null;
+let wmsLayer = null;
+let basemapLayer = null;
+const activeFilters = {date: null, attr: null};
+
+// ════════════════════════════════════════════════════════════════
+//  INIT – Config laden, dann Karte aufbauen
+// ════════════════════════════════════════════════════════════════
+const map = L.map('map', { zoomControl: true }).setView([47.44, 8.36], 14);
+
+async function init() {
+    try {
+        const res = await fetch('/api/config?profile=coxboxdaten');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        config = await res.json();
+    } catch(e) {
+        console.error('Config-Ladefehler:', e);
+        alert('Konfiguration konnte nicht geladen werden. Prüfe ob der Server läuft.');
+        return;
     }
 
-    function toggleBasemapPicker() {
-        document.getElementById('basemapDropdown').classList.toggle('open');
-    }
-    document.addEventListener('click', (e) => {
-        const dd = document.getElementById('basemapDropdown');
-        if (dd.classList.contains('open') && !e.target.closest('.basemap-dropdown') && !e.target.closest('.icon-btn')) {
-            dd.classList.remove('open');
-        }
+    buildBasemaps();
+    buildLayerUI();
+    buildAttrFilter();
+    drpRender();
+    restoreFromUrl(); // URL-Parameter lesen
+    refreshLayer();
+
+    // Karte: Bei Bewegung URL aktualisieren
+    map.on('moveend', updateUrl);
+    map.on('zoomend', updateUrl);
+
+    // Loading screen ausblenden
+    const loading = document.getElementById('appLoading');
+    loading.style.opacity = '0';
+    setTimeout(() => loading.style.display = 'none', 400);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  BASEMAPS
+// ════════════════════════════════════════════════════════════════
+function buildBasemaps() {
+    const defaultBm = config.basemaps.find(b => b.default) || config.basemaps[0];
+    activeBasemapKey = defaultBm.key;
+
+    // Dropdown bauen
+    const dd = document.getElementById('basemapDropdown');
+    dd.innerHTML = config.basemaps.map(b => `
+        <div class="basemap-option ${b.key === activeBasemapKey ? 'active' : ''}"
+             onclick="setBasemap('${b.key}')" data-bm="${b.key}">
+            <div class="basemap-thumb">${b.icon || '🗺️'}</div>
+            <span>${b.label}</span>
+        </div>`).join('');
+
+    // Standard-Karte setzen
+    setBasemapTile(defaultBm);
+}
+
+function setBasemapTile(bmCfg) {
+    if (basemapLayer) map.removeLayer(basemapLayer);
+    const opts = { attribution: bmCfg.attribution, maxZoom: bmCfg.maxZoom || 19 };
+    if (bmCfg.subdomains) opts.subdomains = bmCfg.subdomains;
+    basemapLayer = L.tileLayer(bmCfg.url, opts).addTo(map);
+    basemapLayer.bringToBack();
+}
+
+function setBasemap(key) {
+    const bmCfg = config.basemaps.find(b => b.key === key);
+    if (!bmCfg) return;
+    activeBasemapKey = key;
+    setBasemapTile(bmCfg);
+    document.querySelectorAll('.basemap-option').forEach(el =>
+        el.classList.toggle('active', el.dataset.bm === key));
+    updateUrl();
+}
+
+function toggleBasemapPicker() {
+    document.getElementById('basemapDropdown').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+    const dd = document.getElementById('basemapDropdown');
+    if (dd.classList.contains('open') && !e.target.closest('.basemap-dropdown') && !e.target.closest('.icon-btn'))
+        dd.classList.remove('open');
+});
+
+// ════════════════════════════════════════════════════════════════
+//  LAYER
+// ════════════════════════════════════════════════════════════════
+function buildLayerUI() {
+    activeLayerKey = config.layers[0].key;
+    const group = document.getElementById('layerGroup');
+    group.innerHTML = config.layers.map(l => `
+        <div class="layer-radio ${l.key === activeLayerKey ? 'selected' : ''}" data-key="${l.key}" onclick="switchLayer('${l.key}')">
+            <input type="radio" name="layerSelect" value="${l.key}" ${l.key === activeLayerKey ? 'checked' : ''}>
+            <div>
+                <div class="layer-radio-label">${l.label}</div>
+                <div class="layer-radio-sub">${l.wmsLayers}</div>
+            </div>
+        </div>`).join('');
+    buildLegend();
+}
+
+function switchLayer(key) {
+    activeLayerKey = key;
+    document.querySelectorAll('.layer-radio').forEach(el => {
+        el.classList.toggle('selected', el.dataset.key === key);
+        el.querySelector('input').checked = el.dataset.key === key;
     });
+    buildLegend();
+    refreshLayer();
+    updateUrl();
+}
 
-    // ════════════════════════════════════════════════════════════════
-    //  WMS LAYER
-    // ════════════════════════════════════════════════════════════════
-    const WMS_URL = 'http://qgis.kaufmann.work/qgis-server/?MAP=/wmsdata/coxboxdaten.qgs';
+function buildLegend() {
+    const layer = config.layers.find(l => l.key === activeLayerKey);
+    if (!layer) return;
+    document.getElementById('legendBody').innerHTML = `<table class="legend-table">${
+        layer.legend.map(l => `<tr><td class="legendsymbol" style="background:${l.color}"></td><td class="legendtext">${l.label}</td></tr>`).join('')
+    }</table>`;
+}
 
-    const activeFilters = { date: null, attr: null };
+function getActiveLayer() {
+    return config.layers.find(l => l.key === activeLayerKey);
+}
 
-    let wmsLayer = null;
+// ════════════════════════════════════════════════════════════════
+//  WMS
+// ════════════════════════════════════════════════════════════════
+function buildFilter() {
+    const layer = getActiveLayer();
+    if (!layer) return '';
+    const wmsLayers = layer.wmsLayers;
 
-    function getActiveLayerConfig() {
-        return LAYER_CONFIG[activeLayerKey];
+    if (activeFilters.date) {
+        const { from, to } = activeFilters.date;
+        return `${wmsLayers}:"start_time" >= '${from}T00:00:00' AND "start_time" <= '${to}T23:59:59'`;
     }
-
-    function buildFilter() {
-        const cfg = getActiveLayerConfig();
-        const layers = cfg.layers;
-
-        if (activeFilters.date) {
-            const { from, to } = activeFilters.date;
-            return `${layers}:"start_time" >= '${from}T00:00:00' AND "start_time" <= '${to}T23:59:59'`;
+    if (activeFilters.attr) {
+        const { column, values } = activeFilters.attr;
+        if (values.length === 1) {
+            return `${wmsLayers}:"${column}" = '${values[0].replace(/'/g,"''")}'`;
         }
-
-        if (activeFilters.attr) {
-            const { column, values } = activeFilters.attr;
-            if (values.length === 1) {
-                const v = values[0].replace(/'/g, "''");
-                return `${layers}:"${column}" = '${v}'`;
-            }
-            // OR-Verkettung – sicherer als IN() für Sonderzeichen
-            const expr = values.map(v => `"${column}" = '${v.replace(/'/g, "''")}'`).join(' OR ');
-            return `${layers}:${expr}`;
-        }
-
-        return '';
+        const expr = values.map(v => `"${column}" = '${v.replace(/'/g,"''")}'`).join(' OR ');
+        return `${wmsLayers}:${expr}`;
     }
+    return '';
+}
 
-    function refreshLayer() {
-        if (wmsLayer) { map.removeLayer(wmsLayer); wmsLayer = null; }
-        const cfg = getActiveLayerConfig();
-        const filter = buildFilter();
+function refreshLayer() {
+    if (wmsLayer) { map.removeLayer(wmsLayer); wmsLayer = null; }
+    const layer = getActiveLayer();
+    if (!layer) return;
 
-        const params = {
-            layers: cfg.layers,
-            format: 'image/png',
-            transparent: true,
-            version: '1.1.1',
-        };
-        if (filter) params.filter = filter;
-
-        wmsLayer = L.tileLayer.wms(WMS_URL, params);
-        wmsLayer.addTo(map);
-    }
-
-    // ════════════════════════════════════════════════════════════════
-    //  LAYER SWITCHER UI
-    // ════════════════════════════════════════════════════════════════
-    function buildLayerUI() {
-        const group = document.getElementById('layerGroup');
-        group.innerHTML = '';
-        Object.entries(LAYER_CONFIG).forEach(([key, cfg]) => {
-            const div = document.createElement('div');
-            div.className = 'layer-radio' + (key === activeLayerKey ? ' selected' : '');
-            div.dataset.key = key;
-            div.innerHTML = `
-                <input type="radio" name="layerSelect" value="${key}" ${key === activeLayerKey ? 'checked' : ''}>
-                <div>
-                    <div class="layer-radio-label">${cfg.label}</div>
-                </div>`;
-            div.addEventListener('click', () => switchLayer(key));
-            group.appendChild(div);
-        });
-        buildLegend();
-    }
-
-    function switchLayer(key) {
-        activeLayerKey = key;
-        document.querySelectorAll('.layer-radio').forEach(el => {
-            el.classList.toggle('selected', el.dataset.key === key);
-            el.querySelector('input').checked = el.dataset.key === key;
-        });
-        buildLegend();
-        refreshLayer();
-    }
-
-    function buildLegend() {
-        const body = document.getElementById('legendBody');
-        const legend = LAYER_CONFIG[activeLayerKey].legend;
-        body.innerHTML = `<table class="legend-table">${
-            legend.map(l =>
-                `<tr><td class="legendsymbol" style="background:${l.color}"></td><td class="legendtext">${l.label}</td></tr>`
-            ).join('')
-        }</table>`;
-    }
-
-    // ════════════════════════════════════════════════════════════════
-    //  SIDEBAR
-    // ════════════════════════════════════════════════════════════════
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('closed');
-    }
-    function toggleSection(header) {
-        header.classList.toggle('open');
-        header.nextElementSibling.classList.toggle('open');
-    }
-
-    // ════════════════════════════════════════════════════════════════
-    //  DATE RANGE PICKER
-    // ════════════════════════════════════════════════════════════════
-    const drpState = {
-        year: new Date().getFullYear(),
-        month: new Date().getMonth(),
-        start: null,    // Date object
-        end: null,      // Date object
-        selecting: false  // true = waiting for end date
+    const filter = buildFilter();
+    const params = {
+        layers: layer.wmsLayers,
+        format: 'image/png',
+        transparent: true,
+        version: '1.1.1',
     };
+    if (filter) params.filter = filter;
 
-    const DAYS = ['Mo','Di','Mi','Do','Fr','Sa','So'];
-    const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+    wmsLayer = L.tileLayer.wms(layer.url, params).addTo(map);
+}
 
-    function drpRender() {
-        const label = document.getElementById('drpMonthLabel');
-        label.textContent = `${MONTHS[drpState.month]} ${drpState.year}`;
+// ════════════════════════════════════════════════════════════════
+//  ATTRIBUTFILTER
+// ════════════════════════════════════════════════════════════════
+function buildAttrFilter() {
+    const sel = document.getElementById('attrColumn');
+    sel.innerHTML = '<option value="">— Attribut wählen —</option>';
+    config.filterattributes.filter(a => a.enabled).forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.field;
+        opt.textContent = a.label;
+        sel.appendChild(opt);
+    });
+}
 
-        const grid = document.getElementById('drpGrid');
-        grid.innerHTML = '';
+async function loadAttributeValues() {
+    const field = document.getElementById('attrColumn').value;
+    const attrCfg = config.filterattributes.find(a => a.field === field);
+    const valuesField = document.getElementById('attrValuesField');
+    const valuesSelect = document.getElementById('attrValues');
+    const loading = document.getElementById('valuesLoading');
 
-        // Day headers
-        DAYS.forEach(d => {
-            const el = document.createElement('div');
-            el.className = 'drp-day-header';
-            el.textContent = d;
-            grid.appendChild(el);
+    valuesSelect.innerHTML = '';
+    document.getElementById('applyAttrBtn').disabled = true;
+    valuesField.style.display = 'none';
+    if (!field || !attrCfg) return;
+
+    loading.classList.add('visible');
+    try {
+        const res = await fetch(`/data?profile=coxboxdaten&table=${attrCfg.table}&attributes=${field}`);
+        const data = await res.json();
+        const unique = [...new Set(data.rows.map(r => r[field]).filter(v => v != null))].sort((a,b) =>
+            typeof a === 'number' ? a - b : String(a).localeCompare(String(b)));
+        unique.forEach(val => {
+            const opt = document.createElement('option');
+            opt.value = val; opt.textContent = val;
+            valuesSelect.appendChild(opt);
         });
-
-        const firstDay = new Date(drpState.year, drpState.month, 1);
-        // Monday = 0, so adjust from Sunday=0 to Monday=0
-        let startOffset = (firstDay.getDay() + 6) % 7;
-        const daysInMonth = new Date(drpState.year, drpState.month + 1, 0).getDate();
-
-        for (let i = 0; i < startOffset; i++) {
-            const el = document.createElement('div');
-            el.className = 'drp-day drp-day-empty';
-            grid.appendChild(el);
-        }
-
-        for (let d = 1; d <= daysInMonth; d++) {
-            const date = new Date(drpState.year, drpState.month, d);
-            const el = document.createElement('div');
-            el.className = 'drp-day';
-            el.textContent = d;
-
-            const isStart = drpState.start && isSameDay(date, drpState.start);
-            const isEnd = drpState.end && isSameDay(date, drpState.end);
-            const inRange = drpState.start && drpState.end && date > drpState.start && date < drpState.end;
-
-            if (isStart) el.classList.add('drp-start');
-            if (isEnd) el.classList.add('drp-end');
-            if (inRange) el.classList.add('drp-in-range');
-
-            el.addEventListener('click', () => drpSelectDay(date));
-            el.addEventListener('mouseenter', () => drpHover(date, el));
-            grid.appendChild(el);
-        }
-
-        // Hint
-        const hint = document.getElementById('drpHint');
-        if (!drpState.start) {
-            hint.textContent = 'Startdatum anklicken';
-        } else if (drpState.selecting) {
-            hint.textContent = `Start: ${drpFmt(drpState.start)} – Enddatum wählen`;
-        } else if (drpState.end) {
-            hint.textContent = `${drpFmt(drpState.start)} → ${drpFmt(drpState.end)}`;
-        }
-
-        document.getElementById('applyDateBtn').disabled = !(drpState.start && drpState.end);
+        valuesField.style.display = 'block';
+        document.getElementById('applyAttrBtn').disabled = false;
+    } catch(e) {
+        console.error('Werte laden:', e);
+    } finally {
+        loading.classList.remove('visible');
     }
+}
 
-    function drpSelectDay(date) {
-        if (!drpState.start || !drpState.selecting) {
-            // First click: set start
-            drpState.start = date;
-            drpState.end = null;
-            drpState.selecting = true;
-        } else {
-            // Second click: set end
-            if (date < drpState.start) {
-                drpState.end = drpState.start;
-                drpState.start = date;
-            } else {
-                drpState.end = date;
-            }
-            drpState.selecting = false;
-        }
-        drpRender();
-    }
+function applyAttrFilter() {
+    const field = document.getElementById('attrColumn').value;
+    const selected = [...document.getElementById('attrValues').selectedOptions].map(o => o.value);
+    if (!field || !selected.length) return;
+    activeFilters.attr = { column: field, values: selected };
+    activeFilters.date = null;
+    clearDateFilterUI();
+    updateAttrStatus(true, field, selected);
+    refreshLayer();
+    updateUrl();
+}
 
-    function drpHover(date, _el) {
-        if (!drpState.selecting || !drpState.start) return;
-        // Temporarily show preview range
-        const cells = document.querySelectorAll('.drp-day:not(.drp-day-empty)');
-        cells.forEach((cell, i) => {
-            const d = new Date(drpState.year, drpState.month, i + 1);
-            cell.classList.remove('drp-in-range', 'drp-end');
-            const inRange = date >= drpState.start ? (d > drpState.start && d < date) : (d < drpState.start && d > date);
-            if (isSameDay(d, date)) cell.classList.add('drp-end');
-            if (inRange) cell.classList.add('drp-in-range');
-        });
-    }
+function clearAttrFilter() {
+    activeFilters.attr = null;
+    document.getElementById('attrColumn').value = '';
+    document.getElementById('attrValues').innerHTML = '';
+    document.getElementById('attrValuesField').style.display = 'none';
+    document.getElementById('applyAttrBtn').disabled = true;
+    updateAttrStatus(false);
+    refreshLayer();
+    updateUrl();
+}
 
-    function isSameDay(a, b) {
-        return a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-    }
-
-    function drpFmt(d) {
-        return d ? `${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getFullYear()}` : '';
-    }
-
-    function drpFmtISO(d) {
-        return d ? `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}` : '';
-    }
-
-    function drpPrevMonth() {
-        drpState.month--;
-        if (drpState.month < 0) { drpState.month = 11; drpState.year--; }
-        drpRender();
-    }
-    function drpNextMonth() {
-        drpState.month++;
-        if (drpState.month > 11) { drpState.month = 0; drpState.year++; }
-        drpRender();
-    }
-
-    // ════════════════════════════════════════════════════════════════
-    //  DATUMSFILTER
-    // ════════════════════════════════════════════════════════════════
-    function applyDateFilter() {
-        if (!drpState.start || !drpState.end) return;
-
-        const from = drpFmtISO(drpState.start);
-        const to   = drpFmtISO(drpState.end);
-
-        activeFilters.date = { from, to };
-        activeFilters.attr = null;
-        updateAttrStatus(false);
-
-        const tag = document.getElementById('dateStatus');
+function updateAttrStatus(active, column, values) {
+    const tag = document.getElementById('attrStatus');
+    if (active) {
+        const attrCfg = config.filterattributes.find(a => a.field === column);
+        const label = attrCfg ? attrCfg.label : column;
+        const preview = values.length > 2 ? `${values.slice(0,2).join(', ')} +${values.length-2}` : values.join(', ');
         tag.className = 'status-tag active';
-        tag.innerHTML = `<span class="status-dot"></span>${drpFmt(drpState.start)} → ${drpFmt(drpState.end)}`;
-
-        refreshLayer();
-    }
-
-    function clearDateFilter() {
-        activeFilters.date = null;
-        drpState.start = null;
-        drpState.end = null;
-        drpState.selecting = false;
-        drpRender();
-
-        const tag = document.getElementById('dateStatus');
+        tag.innerHTML = `<span class="status-dot"></span>${label}: ${preview}`;
+    } else {
         tag.className = 'status-tag inactive';
         tag.innerHTML = '<span class="status-dot"></span>kein Filter aktiv';
-        document.getElementById('applyDateBtn').disabled = true;
-        refreshLayer();
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  DATE RANGE PICKER
+// ════════════════════════════════════════════════════════════════
+const drpState = { year: new Date().getFullYear(), month: new Date().getMonth(), start: null, end: null, selecting: false };
+const DAYS = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+const MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+
+function drpRender() {
+    document.getElementById('drpMonthLabel').textContent = `${MONTHS[drpState.month]} ${drpState.year}`;
+    const grid = document.getElementById('drpGrid');
+    grid.innerHTML = '';
+    DAYS.forEach(d => { const el = document.createElement('div'); el.className = 'drp-day-header'; el.textContent = d; grid.appendChild(el); });
+
+    const firstDay = new Date(drpState.year, drpState.month, 1);
+    const startOffset = (firstDay.getDay() + 6) % 7;
+    const daysInMonth = new Date(drpState.year, drpState.month + 1, 0).getDate();
+
+    for (let i = 0; i < startOffset; i++) {
+        const el = document.createElement('div'); el.className = 'drp-day drp-day-empty'; grid.appendChild(el);
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(drpState.year, drpState.month, d);
+        const el = document.createElement('div');
+        el.className = 'drp-day';
+        el.textContent = d;
+        if (drpState.start && isSameDay(date, drpState.start)) el.classList.add('drp-start');
+        if (drpState.end && isSameDay(date, drpState.end)) el.classList.add('drp-end');
+        if (drpState.start && drpState.end && date > drpState.start && date < drpState.end) el.classList.add('drp-in-range');
+        el.addEventListener('click', () => drpSelectDay(date));
+        el.addEventListener('mouseenter', () => drpHover(date));
+        grid.appendChild(el);
     }
 
-    // ════════════════════════════════════════════════════════════════
-    //  ATTRIBUTFILTER
-    // ════════════════════════════════════════════════════════════════
-    async function loadAttributeValues() {
-        const column = document.getElementById('attrColumn').value;
-        const valuesField = document.getElementById('attrValuesField');
-        const valuesSelect = document.getElementById('attrValues');
-        const loading = document.getElementById('valuesLoading');
+    const hint = document.getElementById('drpHint');
+    if (!drpState.start) hint.textContent = 'Startdatum anklicken';
+    else if (drpState.selecting) hint.textContent = `Start: ${drpFmt(drpState.start)} – Enddatum wählen`;
+    else if (drpState.end) hint.textContent = `${drpFmt(drpState.start)} → ${drpFmt(drpState.end)}`;
+    document.getElementById('applyDateBtn').disabled = !(drpState.start && drpState.end);
+}
 
-        valuesSelect.innerHTML = '';
-        document.getElementById('applyAttrBtn').disabled = true;
-        valuesField.style.display = 'none';
-
-        if (!column) return;
-
-        loading.classList.add('visible');
-
-        try {
-            const res = await fetch(`/data?profile=coxboxdaten&table=v_session&attributes=${column}`);
-            const data = await res.json();
-
-            const unique = [...new Set(data.rows.map(r => r[column]).filter(v => v != null))].sort((a, b) =>
-                typeof a === 'number' ? a - b : String(a).localeCompare(String(b))
-            );
-
-            unique.forEach(val => {
-                const opt = document.createElement('option');
-                opt.value = val;
-                opt.textContent = val;
-                valuesSelect.appendChild(opt);
-            });
-
-            valuesField.style.display = 'block';
-            document.getElementById('applyAttrBtn').disabled = false;
-        } catch (err) {
-            console.error('Fehler beim Laden der Werte:', err);
-            // Demo-Werte für Entwicklung
-            ['Demo-A', 'Demo-B', 'Demo-C'].forEach(val => {
-                const opt = document.createElement('option');
-                opt.value = val;
-                opt.textContent = val + ' (Demo)';
-                valuesSelect.appendChild(opt);
-            });
-            valuesField.style.display = 'block';
-            document.getElementById('applyAttrBtn').disabled = false;
-        } finally {
-            loading.classList.remove('visible');
-        }
+function drpSelectDay(date) {
+    if (!drpState.start || !drpState.selecting) {
+        drpState.start = date; drpState.end = null; drpState.selecting = true;
+    } else {
+        if (date < drpState.start) { drpState.end = drpState.start; drpState.start = date; }
+        else { drpState.end = date; }
+        drpState.selecting = false;
     }
-
-    function applyAttrFilter() {
-        const column = document.getElementById('attrColumn').value;
-        const selected = [...document.getElementById('attrValues').selectedOptions].map(o => o.value);
-
-        if (!column || selected.length === 0) {
-            alert('Bitte Spalte und mindestens einen Wert auswählen.');
-            return;
-        }
-
-        activeFilters.attr = { column, values: selected };
-        activeFilters.date = null;
-        clearDateFilter();
-        updateAttrStatus(true, column, selected);
-        refreshLayer();
-    }
-
-    function clearAttrFilter() {
-        activeFilters.attr = null;
-        document.getElementById('attrColumn').value = '';
-        document.getElementById('attrValues').innerHTML = '';
-        document.getElementById('attrValuesField').style.display = 'none';
-        document.getElementById('applyAttrBtn').disabled = true;
-        updateAttrStatus(false);
-        refreshLayer();
-    }
-
-    function updateAttrStatus(active, column, values) {
-        const tag = document.getElementById('attrStatus');
-        if (active) {
-            tag.className = 'status-tag active';
-            const preview = values.length > 2 ? `${values.slice(0,2).join(', ')} +${values.length-2}` : values.join(', ');
-            tag.innerHTML = `<span class="status-dot"></span>${column}: ${preview}`;
-        } else {
-            tag.className = 'status-tag inactive';
-            tag.innerHTML = '<span class="status-dot"></span>kein Filter aktiv';
-        }
-    }
-
-    // ════════════════════════════════════════════════════════════════
-    //  GETFEATUREINFO (Karten-Klick)
-    // ════════════════════════════════════════════════════════════════
-    // Editierbare Felder – hier anpassen
-    const EDITABLE_FIELDS = ['custom_name', 'narrative'];
-
-    map.on('click', async function(e) {
-        if (!wmsLayer) return;
-
-        const cfg = getActiveLayerConfig();
-        const bounds = map.getBounds();
-        const size = map.getSize();
-        const point = map.latLngToContainerPoint(e.latlng);
-
-        const bbox = [
-            bounds.getWest(), bounds.getSouth(),
-            bounds.getEast(), bounds.getNorth()
-        ].join(',');
-
-        const params = new URLSearchParams({
-            SERVICE: 'WMS',
-            VERSION: '1.1.1',
-            REQUEST: 'GetFeatureInfo',
-            LAYERS: cfg.layers,
-            QUERY_LAYERS: cfg.layers,
-            STYLES: '',
-            BBOX: bbox,
-            WIDTH: size.x,
-            HEIGHT: size.y,
-            SRS: 'EPSG:4326',
-            FORMAT: 'image/png',
-            INFO_FORMAT: 'application/json',
-            X: Math.round(point.x),
-            Y: Math.round(point.y),
-            FEATURE_COUNT: 5
-        });
-
-        try {
-            const res = await fetch(`${WMS_URL}&${params}`);
-            const data = await res.json();
-            const features = data.features || [];
-            if (!features.length) return;
-
-            const f = features[0];
-            const props = f.properties || {};
-
-            let rows = Object.entries(props).map(([k, v]) => {
-                const editable = EDITABLE_FIELDS.includes(k);
-                return `<tr>
-                    <td>${k}</td>
-                    <td style="color:var(--text)">${v ?? '–'}${editable ?
-                        ` <button onclick="openEditModal('${f.id || ''}', '${k}', ${JSON.stringify(v)})" 
-                          style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:11px;padding:0 4px;">✏️</button>` : ''
-                    }</td>
-                </tr>`;
-            }).join('');
-
-            const html = `<div style="font-family:'Sora',sans-serif;font-size:12px;max-width:300px;">
-                <div style="font-weight:600;margin-bottom:8px;color:#3d7fff;">${cfg.label} – Feature Info</div>
-                <table class="feature-info-table">${rows}</table>
-            </div>`;
-
-            L.popup({ maxWidth: 340, className: 'dark-popup' })
-                .setLatLng(e.latlng)
-                .setContent(html)
-                .openOn(map);
-        } catch(err) {
-            console.warn('GetFeatureInfo Fehler:', err);
-        }
-    });
-
-    // ════════════════════════════════════════════════════════════════
-    //  EDIT MODAL
-    // ════════════════════════════════════════════════════════════════
-    let editContext = null;
-
-    function openEditModal(featureId, field, currentValue) {
-        editContext = { featureId, field };
-        const body = document.getElementById('editModalBody');
-        body.innerHTML = `
-            <div class="attr-edit-field">
-                <label>Feature ID</label>
-                <div style="font-size:12px;font-family:var(--font-mono);color:var(--text-muted);padding:4px 0;">${featureId || '(unbekannt)'}</div>
-            </div>
-            <div class="attr-edit-field">
-                <label>Feld</label>
-                <div style="font-size:12px;font-family:var(--font-mono);color:var(--accent);padding:4px 0;">${field}</div>
-            </div>
-            <div class="attr-edit-field">
-                <label>Neuer Wert</label>
-                <input class="attr-edit-input" type="text" id="editValue" value="${currentValue ?? ''}">
-            </div>
-            <p class="hint">Änderungen werden über den Backend-Endpunkt <code style="color:var(--accent)">/api/feature/update</code> gespeichert.</p>
-        `;
-        openModal('editModal');
-    }
-
-    async function saveAttrEdit() {
-        if (!editContext) return;
-        const newValue = document.getElementById('editValue').value;
-        const { featureId, field } = editContext;
-
-        try {
-            const res = await fetch('/api/feature/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: featureId, field, value: newValue })
-            });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            closeModal('editModal');
-            refreshLayer();
-            map.closePopup();
-        } catch(err) {
-            alert('Fehler beim Speichern: ' + err.message + '\n\n(Backend-Endpunkt /api/feature/update muss implementiert werden)');
-        }
-    }
-
-    // ════════════════════════════════════════════════════════════════
-    //  UPLOAD / IMPORT
-    // ════════════════════════════════════════════════════════════════
-    let selectedFile = null;
-
-    function openUploadModal() {
-        clearFileSelection();
-        document.getElementById('uploadLog').classList.remove('visible');
-        document.getElementById('uploadLog').innerHTML = '';
-        openModal('uploadModal');
-    }
-
-    function handleDragOver(e) {
-        e.preventDefault();
-        document.getElementById('uploadArea').classList.add('drag-over');
-    }
-    function handleDragLeave() {
-        document.getElementById('uploadArea').classList.remove('drag-over');
-    }
-    function handleDrop(e) {
-        e.preventDefault();
-        document.getElementById('uploadArea').classList.remove('drag-over');
-        const file = e.dataTransfer.files[0];
-        if (file) setFile(file);
-    }
-    function handleFileSelect(e) {
-        if (e.target.files[0]) setFile(e.target.files[0]);
-    }
-
-    function setFile(file) {
-        selectedFile = file;
-        const info = document.getElementById('uploadFileInfo');
-        document.getElementById('uploadFileName').textContent = file.name;
-        document.getElementById('uploadFileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
-        info.classList.add('visible');
-        document.getElementById('importBtn').disabled = false;
-    }
-
-    function clearFileSelection() {
-        selectedFile = null;
-        document.getElementById('uploadFileInfo').classList.remove('visible');
-        document.getElementById('fileInput').value = '';
-        document.getElementById('importBtn').disabled = true;
-    }
-
-    async function runImport() {
-        if (!selectedFile) return;
-
-        const script = document.getElementById('importScript').value;
-        const params = document.getElementById('importParams').value;
-        const log = document.getElementById('uploadLog');
-        log.innerHTML = '';
-        log.classList.add('visible');
-
-        const addLog = (msg, cls = '') => {
-            const d = document.createElement('div');
-            d.className = 'log-line ' + cls;
-            d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-            log.appendChild(d);
-            log.scrollTop = log.scrollHeight;
-        };
-
-        addLog(`Datei: ${selectedFile.name}`);
-        addLog(`Script: ${script}`);
-        if (params) addLog(`Parameter: ${params}`);
-        addLog('Sende an Backend…');
-
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-        formData.append('script', script);
-        formData.append('params', params);
-
-        try {
-            const res = await fetch('/api/import', { method: 'POST', body: formData });
-            const data = await res.json();
-            if (data.log) data.log.forEach(l => addLog(l));
-            if (res.ok) {
-                addLog('✅ Import erfolgreich abgeschlossen!', '');
-                refreshLayer();
-            } else {
-                addLog('❌ Fehler: ' + (data.error || 'Unbekannt'), 'error');
-            }
-        } catch(err) {
-            addLog('❌ Verbindungsfehler: ' + err.message, 'error');
-            addLog('(Backend-Endpunkt /api/import implementieren)', 'warn');
-        }
-    }
-
-    // ════════════════════════════════════════════════════════════════
-    //  MODAL HELPERS
-    // ════════════════════════════════════════════════════════════════
-    function openModal(id) {
-        document.getElementById(id).classList.add('open');
-    }
-    function closeModal(id) {
-        document.getElementById(id).classList.remove('open');
-    }
-    // Close on overlay click
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-        overlay.addEventListener('click', function(e) {
-            if (e.target === this) closeModal(this.id);
-        });
-    });
-
-    // ════════════════════════════════════════════════════════════════
-    //  INIT
-    // ════════════════════════════════════════════════════════════════
-    buildLayerUI();
     drpRender();
-    refreshLayer();
-    </script>
+}
 
-    <style>
-        /* Leaflet dark popup override */
-        .dark-popup .leaflet-popup-content-wrapper {
-            background: #1c2130;
-            color: #e2e8f0;
-            border: 1px solid #2a3044;
-            border-radius: 10px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        }
-        .dark-popup .leaflet-popup-tip {
-            background: #1c2130;
-        }
-        .dark-popup .leaflet-popup-close-button {
-            color: #64748b;
-        }
-    </style>
+function drpHover(date) {
+    if (!drpState.selecting || !drpState.start) return;
+    const cells = [...document.querySelectorAll('.drp-day:not(.drp-day-empty)')];
+    cells.forEach((cell, i) => {
+        const d = new Date(drpState.year, drpState.month, i + 1);
+        cell.classList.remove('drp-in-range', 'drp-end');
+        if (isSameDay(d, date)) cell.classList.add('drp-end');
+        else if (date >= drpState.start ? (d > drpState.start && d < date) : (d < drpState.start && d > date))
+            cell.classList.add('drp-in-range');
+    });
+}
+
+function isSameDay(a, b) { return a && b && a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function drpFmt(d) { return d ? `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}` : ''; }
+function drpFmtISO(d) { return d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : ''; }
+function drpPrevMonth() { drpState.month--; if (drpState.month < 0) { drpState.month = 11; drpState.year--; } drpRender(); }
+function drpNextMonth() { drpState.month++; if (drpState.month > 11) { drpState.month = 0; drpState.year++; } drpRender(); }
+
+function applyDateFilter() {
+    if (!drpState.start || !drpState.end) return;
+    activeFilters.date = { from: drpFmtISO(drpState.start), to: drpFmtISO(drpState.end) };
+    activeFilters.attr = null;
+    clearAttrFilter();
+    const tag = document.getElementById('dateStatus');
+    tag.className = 'status-tag active';
+    tag.innerHTML = `<span class="status-dot"></span>${drpFmt(drpState.start)} → ${drpFmt(drpState.end)}`;
+    refreshLayer();
+    updateUrl();
+}
+
+function clearDateFilter() {
+    activeFilters.date = null;
+    clearDateFilterUI();
+    refreshLayer();
+    updateUrl();
+}
+
+function clearDateFilterUI() {
+    drpState.start = null; drpState.end = null; drpState.selecting = false;
+    drpRender();
+    const tag = document.getElementById('dateStatus');
+    tag.className = 'status-tag inactive';
+    tag.innerHTML = '<span class="status-dot"></span>kein Filter aktiv';
+    document.getElementById('applyDateBtn').disabled = true;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  GETFEATUREINFO
+// ════════════════════════════════════════════════════════════════
+map.on('click', async function(e) {
+    if (!wmsLayer) return;
+    const layer = getActiveLayer();
+    if (!layer) return;
+
+    const bounds = map.getBounds();
+    const size = map.getSize();
+    const point = map.latLngToContainerPoint(e.latlng);
+
+    const params = new URLSearchParams({
+        SERVICE: 'WMS', VERSION: '1.1.1', REQUEST: 'GetFeatureInfo',
+        LAYERS: layer.wmsLayers,
+        QUERY_LAYERS: layer.wmsLayers,
+        STYLES: '',
+        BBOX: [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()].join(','),
+        WIDTH: size.x, HEIGHT: size.y,
+        SRS: 'EPSG:4326',
+        FORMAT: 'image/png',
+        INFO_FORMAT: 'application/json',
+        X: Math.round(point.x), Y: Math.round(point.y),
+        FEATURE_COUNT: 5
+    });
+    
+    let request_url = '';
+    if (layer.url.includes('?')) {
+        request_url = `${layer.url}&${params}`;
+    } else {
+        request_url = `${layer.url}?${params}`;
+    };
+
+    try {
+        const res = await fetch(request_url);
+        const data = await res.json();
+        const features = data.features || [];
+        if (!features.length) return;
+
+        const f = features[0];
+        const props = f.properties || {};
+
+        // Reihenfolge gemäss featureinfo.json; unsichtbare Felder überspringen
+        const rows = config.featureinfo
+            .filter(fi => fi.visible)
+            .map(fi => {
+                const v = props[fi.field];
+                if (v === undefined) return '';
+                return `<tr>
+                    <td>${fi.label}</td>
+                    <td style="color:var(--text)">${formatValue(v, fi.format) ?? '–'}${fi.editable
+                        ? ` <button onclick="openEditModal('${f.id || ''}','${fi.field}',${JSON.stringify(v)})"
+                            style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:11px;padding:0 4px;">✏️</button>` : ''}
+                    </td></tr>`;
+            }).filter(Boolean).join('');
+ 
+        L.popup({ maxWidth: 340, className: 'dark-popup' })
+            .setLatLng(e.latlng)
+            .setContent(`<div style="font-family:'Sora',sans-serif;font-size:12px;max-width:300px;">
+                <div style="font-weight:600;margin-bottom:8px;color:#3d7fff;">${layer.label} – Feature Info</div>
+                <table class="feature-info-table">${rows}</table>
+            </div>`)
+            .openOn(map);
+    } catch(err) {
+        console.warn('GetFeatureInfo Fehler:', err);
+    }
+});
+
+// ════════════════════════════════════════════════════════════════
+//  EDIT MODAL
+// ════════════════════════════════════════════════════════════════
+let editContext = null;
+
+function openEditModal(featureId, field, currentValue) {
+    editContext = { featureId, field };
+    const fieldCfg = config.featureinfo.find(f => f.field === field);
+    document.getElementById('editModalBody').innerHTML = `
+        <div style="margin-bottom:12px;">
+            <label>Feld</label>
+            <div style="font-size:12px;font-family:var(--font-mono);color:var(--accent);padding:4px 0;">${fieldCfg ? fieldCfg.label : field}</div>
+        </div>
+        <div style="margin-bottom:12px;">
+            <label>Neuer Wert</label>
+            <input class="attr-edit-input" type="text" id="editValue" value="${currentValue ?? ''}">
+        </div>
+        ${fieldCfg?.db ? `<p class="hint">Schreibt in: <code style="color:var(--accent)">${fieldCfg.db.table}.${fieldCfg.db.column}</code></p>` : ''}`;
+    openModal('editModal');
+}
+
+async function saveAttrEdit() {
+    if (!editContext) return;
+    const value = document.getElementById('editValue').value;
+    try {
+        const res = await fetch('/api/feature/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ featureId: editContext.featureId, field: editContext.field, value })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.json()).error}`);
+        closeModal('editModal');
+        map.closePopup();
+        refreshLayer();
+    } catch(err) {
+        alert('Fehler beim Speichern:\n' + err.message);
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  SHARE / URL STATE
+// ════════════════════════════════════════════════════════════════
+function buildShareUrl() {
+    const center = map.getCenter();
+    const params = new URLSearchParams({
+        profile: 'coxboxdaten',
+        lat: center.lat.toFixed(6),
+        lng: center.lng.toFixed(6),
+        zoom: map.getZoom(),
+        layer: activeLayerKey,
+        bm: activeBasemapKey,
+    });
+    if (activeFilters.date) {
+        params.set('dfrom', activeFilters.date.from);
+        params.set('dto',   activeFilters.date.to);
+    }
+    if (activeFilters.attr) {
+        params.set('acol', activeFilters.attr.column);
+        params.set('aval', activeFilters.attr.values.join('|'));
+    }
+    return `${location.origin}${location.pathname}?${params}`;
+}
+
+function updateUrl() {
+    history.replaceState(null, '', buildShareUrl());
+}
+
+function shareView() {
+    const url = buildShareUrl();
+ 
+    const showToast = () => {
+        const toast = document.getElementById('shareToast');
+        toast.classList.add('visible');
+        setTimeout(() => toast.classList.remove('visible'), 2500);
+    };
+ 
+    // Moderne API (HTTPS / localhost)
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(showToast).catch(() => fallbackCopy(url, showToast));
+    } else {
+        fallbackCopy(url, showToast);
+    }
+}
+
+function fallbackCopy(text, onSuccess) {
+    // Funktioniert auch über HTTP
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try {
+        document.execCommand('copy');
+        onSuccess();
+    } catch(e) {
+        // Letzter Ausweg: URL anzeigen
+        prompt('Link zum Kopieren:', text);
+    } finally {
+        document.body.removeChild(ta);
+    }
+}
+
+function restoreFromUrl() {
+    const p = new URLSearchParams(location.search);
+    if (p.has('lat') && p.has('lng') && p.has('zoom')) {
+        map.setView([parseFloat(p.get('lat')), parseFloat(p.get('lng'))], parseInt(p.get('zoom')));
+    }
+    if (p.has('layer')) {
+        const key = p.get('layer');
+        if (config.layers.find(l => l.key === key)) switchLayer(key);
+    }
+    if (p.has('bm')) {
+        const key = p.get('bm');
+        if (config.basemaps.find(b => b.key === key)) setBasemap(key);
+    }
+    if (p.has('dfrom') && p.has('dto')) {
+        const from = p.get('dfrom'), to = p.get('dto');
+        activeFilters.date = { from, to };
+        const tag = document.getElementById('dateStatus');
+        tag.className = 'status-tag active';
+        tag.innerHTML = `<span class="status-dot"></span>${from} → ${to}`;
+        // Kalender auf Start-Monat setzen
+        const d = new Date(from);
+        drpState.year = d.getFullYear(); drpState.month = d.getMonth();
+        drpState.start = new Date(from + 'T00:00:00');
+        drpState.end   = new Date(to   + 'T00:00:00');
+        drpRender();
+    }
+    if (p.has('acol') && p.has('aval')) {
+        const column = p.get('acol');
+        const values = p.get('aval').split('|');
+        activeFilters.attr = { column, values };
+        updateAttrStatus(true, column, values);
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  UPLOAD
+// ════════════════════════════════════════════════════════════════
+let selectedFile = null;
+
+function openUploadModal() {
+    clearFileSelection();
+    document.getElementById('uploadLog').classList.remove('visible');
+    document.getElementById('uploadLog').innerHTML = '';
+    openModal('uploadModal');
+}
+function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadArea').classList.add('drag-over'); }
+function handleDragLeave() { document.getElementById('uploadArea').classList.remove('drag-over'); }
+function handleDrop(e) { e.preventDefault(); document.getElementById('uploadArea').classList.remove('drag-over'); if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]); }
+function handleFileSelect(e) { if (e.target.files[0]) setFile(e.target.files[0]); }
+function setFile(file) {
+    selectedFile = file;
+    document.getElementById('uploadFileName').textContent = file.name;
+    document.getElementById('uploadFileSize').textContent = (file.size/1024).toFixed(1) + ' KB';
+    document.getElementById('uploadFileInfo').classList.add('visible');
+    document.getElementById('importBtn').disabled = false;
+}
+function clearFileSelection() {
+    selectedFile = null;
+    document.getElementById('uploadFileInfo').classList.remove('visible');
+    document.getElementById('fileInput').value = '';
+    document.getElementById('importBtn').disabled = true;
+}
+async function runImport() {
+    if (!selectedFile) return;
+    const log = document.getElementById('uploadLog');
+    log.innerHTML = ''; log.classList.add('visible');
+    const addLog = (msg, cls='') => { const d = document.createElement('div'); d.className='log-line '+cls; d.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`; log.appendChild(d); log.scrollTop=log.scrollHeight; };
+    addLog(`Datei: ${selectedFile.name}`);
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('script', document.getElementById('importScript').value);
+    formData.append('params', document.getElementById('importParams').value);
+    try {
+        const res = await fetch('/api/import', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.log) data.log.forEach(l => addLog(l));
+        if (res.ok) { addLog('✅ Import abgeschlossen!'); refreshLayer(); }
+        else addLog('❌ ' + (data.error || 'Fehler'), 'error');
+    } catch(e) { addLog('❌ ' + e.message, 'error'); }
+}
+
+
+// ════════════════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════════════════
+function formatValue(value, format) {
+    if (!format || value === null || value === undefined) return value ?? '–';
+    if (format.startsWith('datetime:')) {
+        const pattern = format.slice(9); // z.B. "DD.MM.YYYY HH:mm"
+        const d = new Date(value);
+        if (isNaN(d)) return value;
+        const pad = n => String(n).padStart(2, '0');
+        return pattern
+            .replace('DD',   pad(d.getDate()))
+            .replace('MM',   pad(d.getMonth() + 1))
+            .replace('YYYY', d.getFullYear())
+            .replace('HH',   pad(d.getHours()))
+            .replace('mm',   pad(d.getMinutes()))
+            .replace('ss',   pad(d.getSeconds()));
+    }
+    if (format.startsWith('date:')) {
+        const pattern = format.slice(5);
+        const d = new Date(value);
+        if (isNaN(d)) return value;
+        const pad = n => String(n).padStart(2, '0');
+        return pattern
+            .replace('DD',   pad(d.getDate()))
+            .replace('MM',   pad(d.getMonth() + 1))
+            .replace('YYYY', d.getFullYear());
+    }
+    return value;
+}
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('closed'); }
+function toggleSection(h) { h.classList.toggle('open'); h.nextElementSibling.classList.toggle('open'); }
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', function(e) { if (e.target===this) closeModal(this.id); }));
+
+
+// ── Start ──
+init();
+</script>
 </body>
 </html>

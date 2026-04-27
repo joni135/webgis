@@ -1,0 +1,43 @@
+[
+    {
+        "key": "standard",
+        "label": "Standard",
+        "wmsLayers": "session_distance,stroke_distance",
+        "url": "http://192.168.1.208:1021/?MAP=/wmsdata/rcbaden/coxboxdaten.qgs",
+        "legend": [
+            {"color": "#1a6b3a", "label": "kurze Distanz (< 500m)"},
+            {"color": "#2d9e58", "label": "500m - 1km"},
+            {"color": "#5bbf7a", "label": "1km - 2km"},
+            {"color": "#a8db9e", "label": "2km - 5km"},
+            {"color": "#d4f1c8", "label": "lange Distanz (> 5km)"}
+        ]
+    },
+    {
+        "key": "strokerate",
+        "label": "Schlagzahl",
+        "wmsLayers": "session_strokerate,stroke_strokerate",
+        "url": "http://192.168.1.208:1021/?MAP=/wmsdata/rcbaden/coxboxdaten.qgs",
+        "legend": [
+            {"color": "#0073e4", "label": "unter SZ 20"},
+            {"color": "#391dd4", "label": "SZ 20 - 23"},
+            {"color": "#971dd4", "label": "SZ 23 - 26"},
+            {"color": "#d41da9", "label": "SZ 26 - 29"},
+            {"color": "#d41d5d", "label": "SZ 29 - 32"},
+            {"color": "#d44a1d", "label": "über SZ 32"}
+        ]
+    },
+    {
+        "key": "speed",
+        "label": "Geschwindigkeit",
+        "wmsLayers": "session_speed,stroke_speed",
+        "url": "http://192.168.1.208:1021/?MAP=/wmsdata/rcbaden/coxboxdaten.qgs",
+        "legend": [
+            {"color": "#0f4c75", "label": "sehr langsam (< 3 km/h)"},
+            {"color": "#1b6ca8", "label": "3 - 6 km/h"},
+            {"color": "#1da0d4", "label": "6 - 9 km/h"},
+            {"color": "#00c9a7", "label": "9 - 12 km/h"},
+            {"color": "#f7c59f", "label": "12 - 15 km/h"},
+            {"color": "#e84393", "label": "sehr schnell (> 15 km/h)"}
+        ]
+    }
+]
