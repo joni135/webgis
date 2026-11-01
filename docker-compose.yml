@@ -1,0 +1,21 @@
+services:
+  node-app:
+    image: node:26-alpine
+    container_name: webgis
+    restart: unless-stopped
+    command: sh -c "npm install --omit=dev && node app.js"
+    working_dir: /usr/src/app
+    volumes:
+      - ./:/usr/src/app
+    ports:
+      - "1023:8080"
+    networks:
+      - qgis
+      - caddy_net
+
+networks:
+  qgis:
+    external: true
+    name: qgis_qgis
+  caddy_net:
+    external: true
